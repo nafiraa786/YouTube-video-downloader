@@ -1,0 +1,25 @@
+# Core Framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+Flask-Limiter==3.5.0
+
+# Video Processing
+yt-dlp==2023.10.13
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+Werkzeug==2.3.7
+
+# Production Server
+gunicorn==21.2.0
+python-multipart==0.0.6
+
+# Security
+python-dotenv==1.0.0
+
+# Development (optional)
+# pytest==7.4.3
+# pytest-cov==4.1.0
+# black==23.10.0
+# flake8==6.1.0
