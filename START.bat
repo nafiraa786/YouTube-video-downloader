@@ -13,28 +13,24 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Start backend in a new window
-echo Starting backend server on http://127.0.0.1:5000...
-start "YT Downloader - Backend" cmd /k "cd backend && python simple_run.py"
+REM Start backend in a new window on PORT 8001 (serves frontend files)
+echo Starting backend server on http://127.0.0.1:8001...
+start "YT Downloader - Backend" cmd /k "cd backend && set PORT=8001 && set DEBUG=1 && python app.py"
 
 REM Wait a few seconds for backend to start
 timeout /t 3 /nobreak
 
-REM Start frontend in a new window
-echo Starting frontend server on http://localhost:8000...
-start "YT Downloader - Frontend" cmd /k "cd frontend && python -m http.server 8000"
-
-REM Wait a few seconds then open browser
-timeout /t 2 /nobreak
-
-REM Try to open the application in default browser
+REM Open the application in the default browser (served by backend)
 echo Opening application in browser...
-start http://localhost:8000
+start http://127.0.0.1:8001
+
+REM Frontend served statically from backend; React/Vite dev server not started.
+echo Frontend served from backend at http://127.0.0.1:8001
 
 echo.
 echo YouTube Video Downloader is now running!
-echo Frontend: http://localhost:8000
-echo Backend API: http://127.0.0.1:5000/api
+echo Frontend + Backend: http://127.0.0.1:8001
+echo Backend API: http://127.0.0.1:8001/api
 echo.
 echo Press CTRL+C in each window to stop the servers.
 pause

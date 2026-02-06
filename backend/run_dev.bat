@@ -24,9 +24,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Start Flask development server
+REM Start Flask development server (default PORT=8001)
 echo.
-echo ✓ Starting Flask server on http://127.0.0.1:5000
+set PORT=8001
+set DEBUG=1
+echo ✓ Starting Flask server on http://127.0.0.1:8001
 echo   Press Ctrl+C to stop the server
 echo.
 

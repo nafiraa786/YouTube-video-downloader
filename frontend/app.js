@@ -8,8 +8,136 @@
 // Configuration & Constants
 // ============================================================================
 
+
+// ---------------- Queue State & SSE ----------------
+const queueState = {
+    jobs: new Map(),
+    es: null,
+};
+
+function renderQueue() {
+    if (!elements.queueList) return;
+    elements.queueList.innerHTML = '';
+    const jobs = Array.from(queueState.jobs.values()).sort((a,b)=> new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    if (jobs.length === 0) {
+        elements.queueList.innerHTML = '<div class="text-sm text-gray-500">Queue is empty</div>';
+        return;
+    }
+
+    for (const job of jobs) {
+        const card = document.createElement('div');
+        card.className = 'flex items-center gap-3 p-2 rounded bg-gray-900/40 border border-gray-700';
+
+        const meta = document.createElement('div');
+        meta.className = 'flex-1';
+        const title = job.title || job.url || 'Untitled';
+        const status = job.status || 'queued';
+        const percent = job.progress != null ? job.progress : 0;
+
+        meta.innerHTML = `
+            <div class="font-medium truncate">${escapeHtml(title)}</div>
+            <div class="text-xs text-gray-400">${job.url ? job.url.replace(/^https?:\/\//,'') : ''}</div>
+        `;
+
+        const right = document.createElement('div');
+        right.className = 'w-36 text-right';
+        const badge = document.createElement('div');
+        badge.className = 'text-xs mb-2';
+        badge.innerHTML = `<span class="px-2 py-1 rounded text-xs ${status === 'completed' ? 'bg-green-600' : status === 'failed' ? 'bg-red-600' : 'bg-yellow-600'}">${status}</span>`;
+
+        const barWrap = document.createElement('div');
+        barWrap.className = 'w-full bg-gray-800 rounded-full h-2 overflow-hidden mt-1';
+        const bar = document.createElement('div');
+        bar.className = 'h-full bg-gradient-to-r from-red-500 to-red-400';
+        bar.style.width = `${percent}%`;
+        barWrap.appendChild(bar);
+
+        right.appendChild(badge);
+        right.appendChild(barWrap);
+
+        card.appendChild(meta);
+        card.appendChild(right);
+
+        // If completed, add download link
+        if (job.filename) {
+            const link = document.createElement('a');
+            link.href = `${CONFIG.API_BASE_URL.replace(/\/api$/,'')}/api/file/${encodeURIComponent(job.filename)}`;
+            link.className = 'ml-3 text-sm text-green-300 hover:underline';
+            link.textContent = 'Download';
+            right.appendChild(link);
+        }
+
+        elements.queueList.appendChild(card);
+    }
+}
+
+function setJob(job) {
+    if (!job || !job.id) return;
+    queueState.jobs.set(job.id, job);
+    renderQueue();
+}
+
+function updateJobFromEvent(ev) {
+    const existing = queueState.jobs.get(ev.job_id) || { id: ev.job_id };
+    const merged = { ...existing, ...(ev.data || {} ) };
+    queueState.jobs.set(ev.job_id, merged);
+    renderQueue();
+}
+
+async function fetchJobsFromServer(){
+    try{
+        const res = await fetch(`${CONFIG.API_BASE_URL}/queue`);
+        if(!res.ok) return;
+        const data = await res.json();
+        const jobs = data.jobs || [];
+        jobs.forEach(j=> queueState.jobs.set(j.id, j));
+        renderQueue();
+    }catch(e){ console.error('Failed to fetch jobs', e) }
+}
+
+function connectSSE(){
+    try{
+        const url = `${CONFIG.API_BASE_URL}/stream`;
+        if (queueState.es) queueState.es.close();
+        const es = new EventSource(url);
+        queueState.es = es;
+        es.onmessage = async (e) => {
+            try{
+                const ev = JSON.parse(e.data);
+                if(ev.type === 'job_enqueued'){
+                    // fetch job detail
+                    try{
+                        const detail = await fetch(`${CONFIG.API_BASE_URL}/queue/${ev.job_id}`);
+                        if(detail.ok){
+                            const jd = await detail.json();
+                            if(jd.success && jd.job) setJob(jd.job);
+                        }
+                    }catch(err){ console.error('fetch job detail', err) }
+                } else if(ev.type === 'job_progress' || ev.type === 'job_retry'){
+                    updateJobFromEvent(ev);
+                } else if(ev.type === 'job_done' || ev.type === 'job_failed'){
+                    updateJobFromEvent(ev);
+                }
+            }catch(err){ console.error('SSE parse', err) }
+        };
+        es.onerror = (err) => { console.error('SSE error', err); }
+    }catch(e){ console.error('SSE init failed', e) }
+}
+
+function escapeHtml(str){
+    if(!str) return '';
+    return String(str).replace(/[&<>\"']/g, function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+}
+
+// Resolve API base dynamically for local dev: if frontend served on localhost, prefer backend port 8001
+const _LOCAL_API = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
+    ? `${location.protocol}//${location.hostname}:8001/api`
+    : 'http://localhost:5000/api';
+
 const CONFIG = {
-    API_BASE_URL: 'http://localhost:8001/api',
+    API_BASE_URL: _LOCAL_API,
     MAX_URL_LENGTH: 200,
     SUPPORTED_DOMAINS: ['youtube.com', 'youtu.be', 'youtube.co', 'ytimg.com'],
     DEBOUNCE_DELAY: 500,
@@ -27,6 +155,8 @@ const appState = {
     isLoading: false,
     isDownloading: false,
     theme: localStorage.getItem('theme') || 'dark',
+    includeSubs: false,
+    subsLangs: null,
 };
 
 // ============================================================================
@@ -41,6 +171,12 @@ const elements = {
     downloadForm: document.getElementById('downloadForm'),
     urlInput: document.getElementById('urlInput'),
     pasteBtn: document.getElementById('pasteBtn'),
+    includeSubsCheckbox: null,
+    subsLangInput: null,
+    expandPlaylistCheckbox: null,
+    addToQueueBtn: null,
+    batchToggleBtn: null,
+    batchTextarea: null,
     submitBtn: document.getElementById('submitBtn'),
     submitBtnText: document.getElementById('submitBtnText'),
     submitSpinner: document.getElementById('submitSpinner'),
@@ -63,6 +199,15 @@ const elements = {
     progressPercent: document.getElementById('progressPercent'),
     successNotification: document.getElementById('successNotification'),
     successMessage: document.getElementById('successMessage'),
+    queueSection: document.getElementById('queueSection'),
+    queueList: document.getElementById('queueList'),
+    clearQueueBtn: document.getElementById('clearQueueBtn'),
+    quickResult: document.getElementById('quickResult'),
+    quickThumb: document.getElementById('quickThumb'),
+    quickTitle: document.getElementById('quickTitle'),
+    quickMeta: document.getElementById('quickMeta'),
+    quickMp4Btn: document.getElementById('quickMp4Btn'),
+    quickMp3Btn: document.getElementById('quickMp3Btn'),
 };
 
 // ============================================================================
@@ -272,6 +417,8 @@ async function downloadVideo() {
             url: appState.currentVideoInfo.url,
             format: appState.selectedFormat,
             quality: appState.selectedQuality,
+            include_subs: !!appState.includeSubs,
+            subs_langs: appState.subsLangs || null,
         };
 
         // Start download
@@ -304,7 +451,7 @@ async function downloadVideo() {
             // Reset download button
             setTimeout(() => {
                 elements.downloadBtn.disabled = false;
-                elements.downloadBtnText.textContent = '⬇️ Download';
+                elements.downloadBtnText.textContent = 'Download';
                 elements.downloadSpinner.classList.add('hidden');
                 elements.progressSection.classList.add('hidden');
                 elements.progressBar.style.width = '0%';
@@ -317,9 +464,36 @@ async function downloadVideo() {
         console.error('Download error:', error);
         showError(error.message || 'Failed to download video. Please try again.');
         elements.downloadBtn.disabled = false;
-        elements.downloadBtnText.textContent = '⬇️ Download';
+        elements.downloadBtnText.textContent = 'Download';
         elements.downloadSpinner.classList.add('hidden');
         elements.progressSection.classList.add('hidden');
+    }
+}
+
+/**
+ * Enqueue current video or a batch of items
+ */
+async function addToQueueBatch(items) {
+    try {
+        const payload = { items };
+        const res = await fetch(`${CONFIG.API_BASE_URL}/queue`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to enqueue');
+        }
+        const data = await res.json();
+        if (data.success) {
+            showSuccess(`Added ${data.job_ids?.length || data.count || 1} item(s) to queue`);
+            fetchJobsFromServer();
+        } else {
+            throw new Error(data.error || 'Enqueue failed');
+        }
+    } catch (err) {
+        showError(err.message || 'Failed to add to queue');
     }
 }
 
@@ -382,6 +556,29 @@ function displayVideoPreview(videoInfo) {
     // Show preview
     elements.previewSection.classList.remove('hidden');
     elements.previewSection.classList.add('animate-fade-in');
+
+    // Also populate quick hero result if present
+    if (elements.quickResult) {
+        elements.quickThumb.src = videoInfo.thumbnail_url || '';
+        elements.quickTitle.textContent = videoInfo.title || 'Untitled';
+        elements.quickMeta.textContent = `${videoInfo.channel_name || ''} • ${formatDuration(videoInfo.duration) || ''}`;
+        elements.quickResult.classList.remove('hidden');
+        // wire quick buttons
+        if (elements.quickMp4Btn){
+            elements.quickMp4Btn.onclick = () => {
+                appState.selectedFormat = 'mp4';
+                appState.selectedQuality = 'best';
+                downloadVideo();
+            }
+        }
+        if (elements.quickMp3Btn){
+            elements.quickMp3Btn.onclick = () => {
+                appState.selectedFormat = 'mp3';
+                appState.selectedQuality = 'best';
+                downloadVideo();
+            }
+        }
+    }
 }
 
 /**
@@ -396,8 +593,8 @@ function renderFormatOptions(formats) {
         'mp3': { label: '🎵 MP3 Audio', icon: '🎵' },
     };
 
-    // Add MP4 option if available
-    const hasVideo = formats && formats.some(f => f.format_id === 'mp4');
+    // Add MP4 option if available — detect by height or non-audio extension
+    const hasVideo = formats && formats.some(f => (f.height && parseInt(f.height) > 0) || (f.ext && f.ext !== 'mp3'));
     if (hasVideo) {
         const option = document.createElement('label');
         option.className = 'format-option flex items-center cursor-pointer';
@@ -412,8 +609,8 @@ function renderFormatOptions(formats) {
     const option = document.createElement('label');
     option.className = 'format-option flex items-center cursor-pointer';
     option.innerHTML = `
-        <input type="radio" name="format" value="mp3" class="w-4 h-4 text-red-500">
-        <span class="ml-3 flex-1 font-medium">🎵 MP3 Audio</span>
+        <input id="mp3Radio" type="radio" name="format" value="mp3" class="w-4 h-4 text-red-500">
+        <span id="mp3FormatLabel" class="ml-3 flex-1 font-medium">🎵 MP3 Audio</span>
     `;
     elements.formatOptions.appendChild(option);
 
@@ -437,11 +634,17 @@ function renderQualityOptions(formats, format) {
     }
 
     if (format === 'mp4' && formats && formats.length > 0) {
+        // detect actual best available height from formats
+        const maxAvail = formats.reduce((mx, f) => {
+            const h = parseInt(f.height) || 0; return h > mx ? h : mx;
+        }, 0);
+        const bestLabel = maxAvail > 0 ? `Best Available (${maxAvail}p)` : 'Best Available';
+
         const qualities = [
+            { id: 'best', label: bestLabel, minHeight: 0 },
             { id: '1080', label: '1080p (Full HD)', minHeight: 1080 },
             { id: '720', label: '720p (HD)', minHeight: 720 },
             { id: '360', label: '360p (SD)', minHeight: 360 },
-            { id: 'best', label: 'Best Available', minHeight: 0 },
         ];
 
         elements.qualityOptions.innerHTML = '';
@@ -453,9 +656,11 @@ function renderQualityOptions(formats, format) {
 
             if (hasQuality || quality.id === 'best') {
                 const label = document.createElement('label');
-                label.className = 'flex items-center cursor-pointer';
+                label.className = 'quality-option flex items-center cursor-pointer';
+                label.style.opacity = hasQuality ? '1' : '0.5';
+                label.title = hasQuality ? '' : 'This quality may not be available for this video';
                 label.innerHTML = `
-                    <input type="radio" name="quality" value="${quality.id}" class="w-4 h-4 text-red-500" ${quality.id === 'best' ? 'checked' : ''}>
+                    <input  type="radio" name="quality" value="${quality.id}" class="w-4 h-4 text-red-500" ${quality.id === 'best' ? 'checked' : ''}>
                     <span class="ml-2 text-sm">${quality.label}</span>
                 `;
                 elements.qualityOptions.appendChild(label);
@@ -498,6 +703,52 @@ function initializeEventListeners() {
         }
     });
 
+    // Add to queue button (created dynamically)
+    if (elements.addToQueueBtn) {
+        elements.addToQueueBtn.addEventListener('click', async () => {
+            const url = elements.urlInput.value.trim();
+            if (!url || !isValidYoutubeUrl(url)) {
+                showError('Enter a valid YouTube URL before adding to queue');
+                return;
+            }
+
+            const item = {
+                url,
+                format: appState.selectedFormat || 'mp4',
+                quality: appState.selectedQuality || 'best',
+                include_subs: !!appState.includeSubs,
+                subs_langs: appState.subsLangs || null,
+            };
+            await addToQueueBatch([item]);
+        });
+    }
+
+    // Batch toggle and textarea handling
+    if (elements.batchToggleBtn) {
+        elements.batchToggleBtn.addEventListener('click', () => {
+            const t = elements.batchTextarea;
+            if (!t) return;
+            t.classList.toggle('hidden');
+        });
+    }
+
+    if (elements.batchTextarea) {
+        // Add a quick enqueue from textarea: Ctrl+Enter
+        elements.batchTextarea.addEventListener('keydown', async (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const lines = elements.batchTextarea.value.split('\n').map(l => l.trim()).filter(Boolean);
+                const items = lines.filter(isValidYoutubeUrl).map(url => ({ url, format: 'mp4' }));
+                if (items.length === 0) {
+                    showError('No valid URLs found in batch input');
+                    return;
+                }
+                await addToQueueBatch(items);
+                elements.batchTextarea.value = '';
+                elements.batchTextarea.classList.add('hidden');
+            }
+        });
+    }
+
     // Form submission
     elements.downloadForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -525,6 +776,14 @@ function initializeEventListeners() {
 
     // Download button
     elements.downloadBtn.addEventListener('click', downloadVideo);
+
+    // Clear queue button (UI only)
+    if (elements.clearQueueBtn){
+        elements.clearQueueBtn.addEventListener('click', () => {
+            queueState.jobs.clear();
+            renderQueue();
+        });
+    }
 
     // URL input auto-clear error on focus
     elements.urlInput.addEventListener('focus', hideError);
@@ -555,9 +814,9 @@ function initialize() {
     
     // Initialize event listeners
     initializeEventListeners();
+
+    // Dynamically create small controls under the URL input for advanced features
     
-    // Auto-focus URL input on load
-    elements.urlInput.focus();
     
     // Check for auto-paste on page load (if clipboard has YouTube URL)
     navigator.clipboard.readText().then(text => {

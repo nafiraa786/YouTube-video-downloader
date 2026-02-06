@@ -185,3 +185,25 @@
 2026-01-27 19:16:34,379 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 2026-01-27 19:16:34,380 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-27 19:43:33,038 - __main__ - INFO - ============================================================
+2026-01-27 19:43:33,039 - __main__ - INFO - YouTube Video Downloader Backend Started [RUNNING]
+2026-01-27 19:43:33,040 - __main__ - INFO - Downloads folder: C:\Users\Nafira\OneDrive\Desktop\yt downloader\backend\downloads
+2026-01-27 19:43:33,040 - __main__ - INFO - ============================================================
+2026-01-27 19:43:33,041 - __main__ - INFO - Starting with Waitress WSGI server on 127.0.0.1:5000...
+2026-01-27 19:43:33,053 - waitress - INFO - Serving on http://127.0.0.1:5000
+2026-01-27 20:02:13,806 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-27 20:02:13,808 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-27 20:03:22,754 - werkzeug - INFO - 127.0.0.1 - - [27/Jan/2026 20:03:22] "[33mGET / HTTP/1.1[0m" 404 -
+2026-02-04 13:44:16,273 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-02-04 13:44:16,286 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-04 13:50:53,456 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-02-04 13:50:53,456 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-04 13:51:36,946 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-02-04 13:51:36,947 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-02-05 19:24:46,669 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-02-05 19:24:46,672 - werkzeug - INFO - [33mPress CTRL+C to quit[0m

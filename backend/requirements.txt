@@ -4,7 +4,8 @@ Flask-CORS==4.0.0
 Flask-Limiter==3.5.0
 
 # Video Processing
-yt-dlp==2023.10.13
+# Leave yt-dlp unpinned so `pip install -r requirements.txt` gets the latest compatible release.
+yt-dlp
 
 # Utilities
 python-dotenv==1.0.0

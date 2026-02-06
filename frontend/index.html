@@ -8,206 +8,167 @@
     <meta property="og:title" content="YouTube Video Downloader">
     <meta property="og:description" content="Download YouTube videos instantly in multiple formats">
     <meta property="og:type" content="website">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/youtube-downloader@latest/dist/index.js"></script>
     <title>YouTube Video Downloader - Fast & Secure</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-950 text-gray-100 transition-colors duration-300" id="root">
+
+<body class="site-root" id="root">
+
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 backdrop-blur-md bg-gray-950/80 border-b border-gray-800">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+    <nav class="site-nav">
+        <div class="nav-container">
+            <div class="nav-inner">
+                <div class="brand">
+                    <div class="logo">
+                        <svg viewBox="0 0 20 20">
                             <path d="M10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0zm3.7 10L8.5 12.2V7.8L13.7 10z"/>
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold tracking-tight">YT Downloader</h1>
-                        <p class="text-xs text-gray-500">Fast & Secure</p>
+                        <h1>YT Downloader</h1>
+                        <p>Fast & Secure</p>
                     </div>
                 </div>
-                <button id="themeToggle" class="p-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors" aria-label="Toggle dark/light mode">
-                    <svg class="w-5 h-5 text-yellow-400" id="sunIcon" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l-2.12-2.12a1 1 0 11-1.414 1.414l2.12 2.12a1 1 0 111.414-1.414zM2.05 6.464a1 1 0 111.414-1.414l2.12 2.12a1 1 0 11-1.414 1.414L2.05 6.464zM17.657 16.97l-2.12-2.12a1 1 0 111.414-1.414l2.12 2.12a1 1 0 11-1.414 1.414zM15.036 5.464a1 1 0 111.414-1.414l2.12 2.12a1 1 0 11-1.414 1.414l-2.12-2.12z" clip-rule="evenodd"/>
-                    </svg>
-                    <svg class="w-5 h-5 text-blue-400 hidden" id="moonIcon" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
-                    </svg>
+
+                <button id="themeToggle" aria-label="Toggle theme">
+                    <svg id="moonIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path fill="#FFD43B" d="M210.2 53.9C217.6 50.8 226 51.7 232.7 56.1L320.5 114.3L408.3 56.1C415 51.7 423.4 50.9 430.8 53.9C438.2 56.9 443.4 63.5 445 71.3L465.9 174.5L569.1 195.4C576.9 197 583.5 202.4 586.5 209.7C589.5 217 588.7 225.5 584.3 232.2L526.1 320L584.3 407.8C588.7 414.5 589.5 422.9 586.5 430.3C583.5 437.7 576.9 443.1 569.1 444.6L465.8 465.4L445 568.7C443.4 576.5 438 583.1 430.7 586.1C423.4 589.1 414.9 588.3 408.2 583.9L320.4 525.7L232.6 583.9C225.9 588.3 217.5 589.1 210.1 586.1C202.7 583.1 197.3 576.5 195.8 568.7L175 465.4L71.7 444.5C63.9 442.9 57.3 437.5 54.3 430.2C51.3 422.9 52.1 414.4 56.5 407.7L114.7 320L56.5 232.2C52.1 225.5 51.3 217.1 54.3 209.7C57.3 202.3 63.9 196.9 71.7 195.4L175 174.6L195.9 71.3C197.5 63.5 202.9 56.9 210.2 53.9zM239.6 320C239.6 275.6 275.6 239.6 320 239.6C364.4 239.6 400.4 275.6 400.4 320C400.4 364.4 364.4 400.4 320 400.4C275.6 400.4 239.6 364.4 239.6 320zM448.4 320C448.4 249.1 390.9 191.6 320 191.6C249.1 191.6 191.6 249.1 191.6 320C191.6 390.9 249.1 448.4 320 448.4C390.9 448.4 448.4 390.9 448.4 320z"/></svg>
+<svg   id="sunIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path fill="#c9c9c9" d="M320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576C388.8 576 451.3 548.8 497.3 504.6C504.6 497.6 506.7 486.7 502.6 477.5C498.5 468.3 488.9 462.6 478.8 463.4C473.9 463.8 469 464 464 464C362.4 464 280 381.6 280 280C280 207.9 321.5 145.4 382.1 115.2C391.2 110.7 396.4 100.9 395.2 90.8C394 80.7 386.6 72.5 376.7 70.3C358.4 66.2 339.4 64 320 64z"/></svg>
+
+                   
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="min-h-screen bg-gradient-to-b from-gray-950 to-gray-900">
-        <!-- Hero Section -->
-        <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 md:pt-16">
-            <div class="text-center mb-8 md:mb-12">
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-red-500 via-red-400 to-orange-400 bg-clip-text text-transparent">
-                    Download YouTube Videos
-                </h2>
-                <p class="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto">
-                    Fast, secure, and easy. No registration required. Download in multiple formats.
-                </p>
+    <!-- Main -->
+    <main class="site-main">
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-text">
+                <h2>Download YouTube Videos</h2>
+                <p>Fast, secure, and easy. No registration required.</p>
             </div>
 
-            <!-- URL Input Section -->
-            <div class="bg-gray-800/50 backdrop-blur-lg border border-gray-700 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <form id="downloadForm" class="space-y-4">
-                    <div>
-                        <label for="urlInput" class="block text-sm font-medium mb-2 text-gray-200">YouTube URL</label>
-                        <div class="flex gap-2">
-                            <input 
-                                type="url" 
-                                id="urlInput" 
-                                placeholder="Paste YouTube link here..." 
-                                class="flex-1 px-4 py-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-red-500 focus:outline-none transition-colors placeholder-gray-500 text-white"
-                                required
-                            >
-                            <button 
-                                type="button" 
-                                id="pasteBtn" 
-                                class="px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors font-medium text-sm"
-                                aria-label="Paste from clipboard"
-                            >
-                                📋 Paste
-                            </button>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">
-                            Supports: youtube.com, youtu.be, short YouTube links
-                        </p>
+            <!-- Input -->
+            <div class="input-card">
+                <form id="downloadForm">
+                    <label for="urlInput">YouTube URL</label>
+
+                    <div class="input-row">
+                        <input
+                            type="url"
+                            id="urlInput"
+                            placeholder="Paste YouTube link here..."
+                            required
+                        >
+                        <button type="button" id="pasteBtn">Paste</button>
                     </div>
 
-                    <!-- Error Message -->
-                    <div id="errorMessage" class="hidden p-3 sm:p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-pulse"></div>
+                    <div id="errorMessage" class="hidden"></div>
 
-                    <!-- Submit Button -->
-                    <button 
-                        type="submit" 
-                        id="submitBtn" 
-                        class="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <span id="submitBtnText">Get Video Info</span>
-                        <span id="submitSpinner" class="hidden ml-2">⏳</span>
+                    <button type="submit" id="submitBtn">
+                        <span id="submitBtnText">Download</span>
+                        <span id="submitSpinner" class="hidden">⏳</span>
                     </button>
                 </form>
             </div>
 
-            <!-- Loading State -->
-            <div id="loadingState" class="hidden text-center py-12">
-                <div class="inline-block">
-                    <div class="animate-spin w-12 h-12 border-4 border-gray-700 border-t-red-500 rounded-full"></div>
-                </div>
-                <p class="text-gray-400 mt-4">Fetching video information...</p>
+            <!-- Loading -->
+            <div id="loadingState" class="hidden loading">
+                <div class="spinner"></div>
+                <p>Fetching video information...</p>
             </div>
 
-            <!-- Video Preview Section -->
-            <div id="previewSection" class="hidden bg-gray-800/50 backdrop-blur-lg border border-gray-700 rounded-2xl overflow-hidden shadow-xl">
-                <!-- Thumbnail -->
-                <div class="relative overflow-hidden bg-gray-900">
-                    <img id="thumbnail" src="" alt="Video thumbnail" class="w-full aspect-video object-cover">
-                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+            <!-- Preview -->
+            <div id="previewSection" class="hidden preview-card">
+
+                <div class="thumbnail-wrapper">
+                    <img id="thumbnail" alt="Video thumbnail">
                 </div>
 
-                <!-- Video Details -->
-                <div class="p-6 sm:p-8 space-y-6">
-                    <div>
-                        <h3 id="videoTitle" class="text-2xl sm:text-3xl font-bold mb-3"></h3>
-                        <div class="flex flex-wrap gap-4 text-sm text-gray-400">
-                            <span id="videoChannel" class="flex items-center gap-2"></span>
-                            <span id="videoDuration" class="flex items-center gap-2"></span>
-                            <span id="videoQuality" class="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-700/50"></span>
-                        </div>
+                <div class="preview-body">
+                    <h3 id="videoTitle"></h3>
+
+                    <div class="video-meta">
+                        <span id="videoChannel"></span>
+                        <span id="videoDuration"></span>
+                        <span id="videoQuality"></span>
                     </div>
 
-                    <!-- Format Selection -->
-                    <div class="border-t border-gray-700 pt-6">
-                        <label class="block text-sm font-semibold mb-4">Download Format</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="formatOptions"></div>
-                        
-                        <!-- Quality Selection (for video formats) -->
+                    <div class="format-section">
+                        <label>Download Format</label>
+                        <div id="formatOptions"></div>
+
                         <div id="qualityContainer" class="hidden">
-                            <label class="block text-sm font-semibold mb-3">Quality</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="qualityOptions"></div>
+                            <label>Quality</label>
+                            <div id="qualityOptions"></div>
                         </div>
                     </div>
 
-                    <!-- Download Progress -->
-                    <div id="progressSection" class="hidden border-t border-gray-700 pt-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium">Downloading...</span>
-                            <span id="progressPercent" class="text-sm text-gray-400">0%</span>
-                        </div>
-                        <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-                            <div id="progressBar" class="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
+                    <div id="progressSection" class="hidden progress">
+<!-- From Uiverse.io by Nawsome --> 
+
+<div class="loadingspinner">
+  <div id="square1"></div>
+  <div id="square2"></div>
+  <div id="square3"></div>
+  <div id="square4"></div>
+  <div id="square5"></div>
+</div>
+
                     </div>
 
-                    <!-- Download Button -->
-                    <button 
-                        id="downloadBtn" 
-                        class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        <span id="downloadBtnText">⬇️ Download</span>
+                    <button id="downloadBtn">
+                        <span id="downloadBtnText">Download</span>
                         <span id="downloadSpinner" class="hidden">⏳</span>
                     </button>
                 </div>
+
+
             </div>
 
-            <!-- Features Section -->
-            <section class="mt-16 sm:mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
-                <div class="bg-gray-800/30 border border-gray-700 rounded-xl p-6">
-                    <div class="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <h4 class="font-semibold mb-2">Lightning Fast</h4>
-                    <p class="text-sm text-gray-400">Optimized streaming and instant downloads</p>
+            <!-- Features -->
+            <section class="features-grid">
+                <div class="feature-card">
+                    <h4>⚡Lightning Fast</h4>
+                    <p>Optimized streaming and instant downloads</p>
                 </div>
 
-                <div class="bg-gray-800/30 border border-gray-700 rounded-xl p-6">
-                    <div class="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                    <h4 class="font-semibold mb-2">Secure & Private</h4>
-                    <p class="text-sm text-gray-400">No tracking. Your data stays private.</p>
+                <div class="feature-card">
+                    <h4>🔐 Secure & Private</h4>
+                    <p>No tracking. Your data stays private.</p>
                 </div>
 
-                <div class="bg-gray-800/30 border border-gray-700 rounded-xl p-6">
-                    <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h4 class="font-semibold mb-2">Multiple Formats</h4>
-                    <p class="text-sm text-gray-400">MP4, MP3, and various quality options</p>
+                <div class="feature-card">
+                    <h4><i class="fa-solid fa-file-export fa-bounce" style="color: #FFD43B;"></i> Multiple Formats</h4>
+                    <p>MP4, MP3, and various quality options</p>
                 </div>
             </section>
         </section>
 
-        <!-- Legal Disclaimer -->
-        <footer class="border-t border-gray-800 bg-gray-900/50 py-8 mt-12">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
-                    <p class="text-xs sm:text-sm text-yellow-300">
-                        <strong>⚠️ Legal Notice:</strong> This tool is for downloading content you have permission to download. Only download videos that you own or have explicit permission to download. Respect copyright laws and YouTube's terms of service.
-                    </p>
-                </div>
-                <div class="text-center text-xs sm:text-sm text-gray-500">
-                    <p>© 2026 YouTube Video Downloader. Built with ❤️</p>
-                    <p class="mt-2">Use responsibly. Respect copyright and content creators.</p>
-                </div>
+        <!-- Footer -->
+        <footer class="site-footer">
+            <div class="legal-box">
+                <p>
+                    <strong>⚠️ Legal Notice:</strong>
+                    Download only content you own or have permission for.
+                </p>
+            </div>
+
+            <div class="footer-text">
+                <p>© 2026 YouTube Video Downloader</p>
+                <p>Use responsibly.</p>
             </div>
         </footer>
+
     </main>
 
-    <!-- Success Message -->
-    <div id="successNotification" class="hidden fixed top-4 right-4 bg-green-500/20 border border-green-500/50 text-green-300 px-4 py-3 rounded-lg backdrop-blur-sm animate-fade-in-out">
+    <!-- Success -->
+    <div id="successNotification" class="hidden success-toast">
         <p id="successMessage"></p>
     </div>
 
